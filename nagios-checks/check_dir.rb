@@ -22,7 +22,7 @@
 #   Show this help
 #
 # == Author
-# R.I.Pienaar <rip@devco.net>
+# R.I.Pienaar <arri.pienaar@pinetec.co.uk>
 
 
 require 'getoptlong'
@@ -55,7 +55,7 @@ crit = ""
 opts.each { |opt, arg|
 	case opt
 	when '--help'
-		showhelp
+		showhelp        
 		exit
 	when '--directory'
 		dirname = arg
@@ -81,14 +81,16 @@ end
 fcount = 0
 
 if FileTest.directory?(dirname)
-	Find.find(dirname) do |path|
+	Dir.entries(dirname).each do |path|
+		next if path =~ /^(\.|\.\.)$/
+
 		if regex == ""
 			fcount = fcount + 1
 		else
 			if File.basename(path) =~ /#{regex}/
 				fcount = fcount + 1
 			end
-		end
+		end		
 	end
 else
 	puts("UNKNOWN: #{dirname} does not exist or is not a directory")
