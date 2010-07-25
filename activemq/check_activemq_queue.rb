@@ -102,11 +102,13 @@ exitcode = 0
 
 begin
     Timeout::timeout(2) do
+        hostname = `hostname`.chomp
+
         conn = Stomp::Connection.open(@options[:user], @options[:password], @options[:host], @options[:port], true)
 
-        conn.subscribe("/topic/statresults", { "transformation" => "jms-map-xml"})
+        conn.subscribe("/topic/nagios.statresults.#{hostname}", { "transformation" => "jms-map-xml"})
 
-        conn.publish("/queue/ActiveMQ.Statistics.Destination.#{@options[:queue]}", "", {"reply-to" => "/topic/statresults"})
+        conn.publish("/queue/ActiveMQ.Statistics.Destination.#{@options[:queue]}", "", {"reply-to" => "/topic/nagios.statresults.#{hostname}"})
 
         s = conn.receive.body
         map = amqxmldecode(s)

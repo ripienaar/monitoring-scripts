@@ -95,14 +95,16 @@ end
 
 begin
     Timeout::timeout(2) do
+        hostname = `hostname`.chomp
+
         conn = Stomp::Connection.open(@options[:user], @options[:password], @options[:host], @options[:port], true)
 
-        conn.subscribe("/topic/statresults", { "transformation" => "jms-map-xml"})
+        conn.subscribe("/topic/nagios.statresults.#{hostname}", { "transformation" => "jms-map-xml"})
 
         if @options[:mode] == :broker
-            conn.publish("/queue/ActiveMQ.Statistics.Broker", "", {"reply-to" => "/topic/statresults"})
+            conn.publish("/queue/ActiveMQ.Statistics.Broker", "", {"reply-to" => "/topic/nagios.statresults.#{hostname}"})
         else
-            conn.publish("/queue/ActiveMQ.Statistics.Destination.#{@options[:mode]}", "", {"reply-to" => "/topic/statresults"})
+            conn.publish("/queue/ActiveMQ.Statistics.Destination.#{@options[:mode]}", "", {"reply-to" => "/topic/nagios.statresults.#{hostname}"})
         end
 
         s = conn.receive.body
