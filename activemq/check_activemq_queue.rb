@@ -10,8 +10,18 @@
 # See --help for full arguments like setting credentials and which
 # broker to connect to
 #
+# Defaults:
+#
+#   host:       localhost
+#   port:       6163
+#   user:       nagios
+#   queue warn: 100
+#   queue crit: 500
+#   mem warn    50
+#   mem crit    75
+#
 # R.I.Pienaar <rip@devco.net>
-# Apache 2.0 Licence
+# Apache 2.0 License
 #
 # [1] http://activemq.apache.org/statisticsplugin.html
 require 'rexml/document'
@@ -19,7 +29,6 @@ require 'rubygems'
 require 'optparse'
 require 'timeout'
 require 'stomp'
-require 'pp'
 
 include REXML
 
@@ -29,6 +38,8 @@ include REXML
            :port => 6163,
            :queue_warn => 100,
            :queue_crit => 500,
+           :memory_percent_warn => 50,
+           :memory_percent_crit => 75,
            :queue => nil}
 
 opt = OptionParser.new
@@ -53,14 +64,21 @@ opt.on("--queue QUEUE.NAME", "What queue to monitor") do |f|
     @options[:queue] = f
 end
 
-opt.on("--queue-crit CRIT", Integer, "Critical threshold") do |f|
+opt.on("--queue-crit CRIT", Integer, "Critical queue size") do |f|
     @options[:queue_crit] = f
 end
 
-opt.on("--queue-warn WARN", Integer, "Warning threshold") do |f|
+opt.on("--queue-warn WARN", Integer, "Warning queue size") do |f|
     @options[:queue_warn] = f
 end
 
+opt.on("--mem-crit CRIT", Integer, "Critical percentage memory used") do |f|
+    @options[:memory_percent_crit] = f
+end
+
+opt.on("--queue-warn WARN", Integer, "Warning percentage memory used") do |f|
+    @options[:memory_percent_warn] = f
+end
 opt.parse!
 
 if @options[:queue].nil?
@@ -98,7 +116,9 @@ def amqxmldecode(amqmap)
     map
 end
 
-exitcode = 0
+output = ["ActiveMQ"]
+statuses = [0]
+perfdata = []
 
 begin
     Timeout::timeout(2) do
@@ -113,20 +133,37 @@ begin
         s = conn.receive.body
         map = amqxmldecode(s)
 
+
+	perfdata << "size=#{map[:size]}"
+	perfdata << "memory_pct=#{map[:memoryPercentUsage]}"
+
         if map[:size] >= @options[:queue_crit]
-            puts("CRITICAL: ActiveMQ #{@options[:queue]} has #{map[:size]} messages")
-            exitcode = 2
+            output << "CRIT: #{@options[:queue]} has #{map[:size]} messages"
+            statuses << 2
         elsif map[:size] >= @options[:queue_warn]
-            puts("WARNING: ActiveMQ #{@options[:queue]} has #{map[:size]} messages")
-            exitcode = 1
+            output << "WARN: #{@options[:queue]} has #{map[:size]} messages"
+            statuses << 1
         else
-            puts("OK: ActiveMQ #{@options[:queue]} has #{map[:size]} messages")
-            exitcode = 0
+            output << "#{@options[:queue]} has #{map[:size]} messages"
+            statuses << 0
+        end
+
+        if map[:memoryPercentUsage] >= @options[:memory_percent_crit]
+            output << "CRIT: #{map[:memoryPercentUsage]} % memory used"
+            statuses << 2
+        elsif map[:memoryPercentUsage] >= @options[:memory_percent_warn]
+            output << "WARN: #{map[:memoryPercentUsage]} % memory used"
+            statuses << 1
+        else
+            output << "#{map[:memoryPercentUsage]} % memory used"
+            statuses << 0
         end
     end
 rescue Exception => e
-    puts("UNKNOWN: Failed to get stats: #{e}")
-    exitcode = 3
+    output = ["UNKNOWN: Failed to get ActiveMQ stats: #{e}"]
+    statuses = [3]
 end
 
-exit(exitcode)
+puts "%s|%s" % [output.join(" "), perfdata.join(" ")]
+
+exit(statuses.max)
