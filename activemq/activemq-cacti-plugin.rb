@@ -99,12 +99,12 @@ begin
 
         conn = Stomp::Connection.open(@options[:user], @options[:password], @options[:host], @options[:port], true)
 
-        conn.subscribe("/topic/nagios.statresults.#{hostname}", { "transformation" => "jms-map-xml"})
+        conn.subscribe("/temp-topic/nagios.statresults.#{hostname}", { "transformation" => "jms-map-xml"})
 
         if @options[:mode] == :broker
-            conn.publish("/queue/ActiveMQ.Statistics.Broker", "", {"reply-to" => "/topic/nagios.statresults.#{hostname}"})
+            conn.publish("/queue/ActiveMQ.Statistics.Broker", "", {"reply-to" => "/temp-topic/nagios.statresults.#{hostname}"})
         else
-            conn.publish("/queue/ActiveMQ.Statistics.Destination.#{@options[:mode]}", "", {"reply-to" => "/topic/nagios.statresults.#{hostname}"})
+            conn.publish("/queue/ActiveMQ.Statistics.Destination.#{@options[:mode]}", "", {"reply-to" => "/temp-topic/nagios.statresults.#{hostname}"})
         end
 
         s = conn.receive.body
