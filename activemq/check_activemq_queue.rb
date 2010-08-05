@@ -76,7 +76,7 @@ opt.on("--mem-crit CRIT", Integer, "Critical percentage memory used") do |f|
     @options[:memory_percent_crit] = f
 end
 
-opt.on("--queue-warn WARN", Integer, "Warning percentage memory used") do |f|
+opt.on("--mem-warn WARN", Integer, "Warning percentage memory used") do |f|
     @options[:memory_percent_warn] = f
 end
 opt.parse!
