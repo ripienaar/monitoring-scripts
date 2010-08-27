@@ -1,0 +1,52 @@
+<lighttpd>
+        <name>Get lighttpd FastCGI stats</name>
+        <script_path>/usr/local/bin/query_lighttpd_statistics.rb</script_path>
+        <arg_prepend>|host_hostname|</arg_prepend>
+        <arg_index>index</arg_index>
+        <arg_query>query</arg_query>
+        <arg_get>get</arg_get>
+	<output_delimeter>:</output_delimeter>
+
+        <fields>
+                <cgi>
+                        <name>cgi</name>
+                        <direction>input</direction>
+                        <query_name>cgi</query_name>
+                </cgi>
+                <backendName>
+                        <name>backendname</name>
+                        <direction>input</direction>
+                        <query_name>cgi</query_name>
+                </backendName>
+		<died>
+			<name>died</name>
+			<direction>output</direction>
+			<query_name>died</query_name>
+		</died>
+		<disabled>
+			<name>disabled</name>
+			<direction>output</direction>
+			<query_name>disabled</query_name>
+		</disabled>
+		<load>
+			<name>load</name>
+			<direction>output</direction>
+			<query_name>load</query_name>
+		</load>
+		<overloaded>
+			<name>overloaded</name>
+			<direction>output</direction>
+			<query_name>overloaded</query_name>
+		</overloaded>
+		<processes>
+			<name>processes</name>
+			<direction>output</direction>
+			<query_name>processes</query_name>
+		</processes>
+		<connected>
+			<name>connected</name>
+			<direction>output</direction>
+			<query_name>connected</query_name>
+		</connected>
+        </fields>
+</lighttpd>
