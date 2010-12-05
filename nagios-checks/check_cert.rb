@@ -91,6 +91,21 @@ def time_period_to_s(time_period)
   return out_str
 end
 
+def alert_age(file, enddate, warn, crit)
+    seconds = Date.parse(enddate).strftime('%s').to_i - Time.now.strftime('%s').to_i
+
+    if seconds < crit
+        puts("CRITICAL: #{file} expires in #{time_period_to_s(seconds)}")
+        exit(2)
+    elsif seconds < warn
+        puts("WARN: #{file} expires in #{time_period_to_s(seconds)}")
+        exit(1)
+    else
+        puts("OK: #{file} expires in #{time_period_to_s(seconds)}")
+        exit(0)
+    end
+end
+
 def check_cert(cert, warn, crit)
     if File.exists?(cert)
         enddate = %x{openssl x509 -in #{cert} -noout -enddate}
@@ -102,19 +117,7 @@ def check_cert(cert, warn, crit)
             exit(3)
         end
 
-        seconds = Date.parse(enddate).strftime('%s').to_i - Time.now.strftime('%s').to_i
-
-        if seconds < crit
-            puts("CRITICAL: #{cert} expires in #{time_period_to_s(seconds)}")
-            exit(2)
-        elsif seconds < warn
-            puts("WARN: #{cert} expires in #{time_period_to_s(seconds)}")
-            exit(1)
-        else
-            puts("OK: #{cert} expires in #{time_period_to_s(seconds)}")
-            exit(0)
-        end
-
+        alert_age(cert, enddate, warn, crit)
     else
         puts("UNKNOWN: Certificate #{cert} doesn't exist")
         exit(3)
@@ -132,19 +135,7 @@ def check_crl(crl, warn, crit)
             exit(3)
         end
 
-        seconds = Date.parse(enddate).strftime('%s').to_i - Time.now.strftime('%s').to_i
-
-        if seconds < crit
-            puts("CRITICAL: #{crl} expires in #{time_period_to_s(seconds)}")
-            exit(2)
-        elsif seconds < warn
-            puts("WARN: #{crl} expires in #{time_period_to_s(seconds)}")
-            exit(1)
-        else
-            puts("OK: #{crl} expires in #{time_period_to_s(seconds)}")
-            exit(0)
-        end
-
+        alert_age(crl, enddate, warn, crit)
     else
         puts("UNKNOWN: CRL #{crl} doesn't exist")
         exit(3)
