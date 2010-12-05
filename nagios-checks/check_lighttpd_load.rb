@@ -1,6 +1,6 @@
 #!/usr/bin/ruby
 
-# Parses the Lighttpd server status BusyServers value and reports critical 
+# Parses the Lighttpd server status BusyServers value and reports critical
 # or warning
 #
 # To set up lighttpd for this, add something like:
@@ -8,7 +8,7 @@
 #   $HTTP["remoteip"] =~ "^(10|127)" {
 #        status.status-url = "/server-status"
 #   }
-# 
+#
 # R.I.Pienaar <rip@devco.net> Apache version 2 license
 
 require 'net/http'
