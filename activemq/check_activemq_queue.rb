@@ -76,7 +76,7 @@ opt.on("--mem-crit CRIT", Integer, "Critical percentage memory used") do |f|
     @options[:memory_percent_crit] = f
 end
 
-opt.on("--mem-warn WARN", Integer, "Warning percentage memory used") do |f|
+opt.on("--queue-warn WARN", Integer, "Warning percentage memory used") do |f|
     @options[:memory_percent_warn] = f
 end
 opt.parse!
@@ -126,16 +126,18 @@ begin
 
         conn = Stomp::Connection.open(@options[:user], @options[:password], @options[:host], @options[:port], true)
 
-        conn.subscribe("/temp-topic/nagios.statresults.#{hostname}", { "transformation" => "jms-map-xml"})
+        conn.subscribe("/topic/nagios.statresults.#{hostname}", { "transformation" => "jms-map-xml"})
 
-        conn.publish("/queue/ActiveMQ.Statistics.Destination.#{@options[:queue]}", "", {"reply-to" => "/temp-topic/nagios.statresults.#{hostname}"})
+        conn.publish("/queue/ActiveMQ.Statistics.Destination.#{@options[:queue]}", "", {"reply-to" => "/topic/nagios.statresults.#{hostname}"})
 
         s = conn.receive.body
+        conn.disconnect
+
         map = amqxmldecode(s)
 
 
-	perfdata << "size=#{map[:size]}"
-	perfdata << "memory_pct=#{map[:memoryPercentUsage]}"
+        perfdata << "size=#{map[:size]}"
+        perfdata << "memory_pct=#{map[:memoryPercentUsage]}"
 
         if map[:size] >= @options[:queue_crit]
             output << "CRIT: #{@options[:queue]} has #{map[:size]} messages"
