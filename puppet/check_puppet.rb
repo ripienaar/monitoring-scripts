@@ -102,11 +102,11 @@ unless failures
     end
 
     if time_since_last_run >= crit
-        puts "CRITICAL: Puppet last ran #{time_since_last_run} secnods ago, expected < #{crit}"
+        puts "CRITICAL: Puppet last ran #{time_since_last_run} seconds ago, expected < #{crit}"
         exit 2
 
     elsif time_since_last_run >= warn
-        puts "WARNING: Puppet last ran #{time_since_last_run} secnods ago, expected < #{warn}"
+        puts "WARNING: Puppet last ran #{time_since_last_run} seconds ago, expected < #{warn}"
         exit 1
 
     else
