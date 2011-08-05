@@ -28,11 +28,11 @@ failures = false
 
 opt = OptionParser.new
 
-opt.on("--critical [CRIT]", "-c", Integer, "Critical seconds since last run") do |f|
+opt.on("--critical [CRIT]", "-c", Integer, "Critical threshold, time or failed resources") do |f|
     crit = f.to_i
 end
 
-opt.on("--warn [WARN]", "-w", Integer, "Warning seconds since last run") do |f|
+opt.on("--warn [WARN]", "-w", Integer, "Warning thresold, time of failed resources") do |f|
     warn = f.to_i
 end
 
