@@ -26,6 +26,7 @@
 require 'rubygems'
 require 'stomp'
 require 'timeout'
+require 'optparse'
 
 options = {:user => "nagios",
            :password => nil,
