@@ -15,6 +15,11 @@
 # See --help for full arguments like setting credentials and which
 # broker to connect to
 #
+# Multiple brokers can be specified with the --host argument, in
+# that case the user/pass/port on them all should be the same it
+# will then attempt to connect to them all till a connection is made
+# this is for active/passive clusters
+#
 # R.I.Pienaar <rip@devco.net>
 # Apache 2.0 Licence
 #
