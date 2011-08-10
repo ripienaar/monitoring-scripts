@@ -17,6 +17,9 @@
 # We could use temp topics but unfortunately these fail in
 # certain middleware topologies.
 #
+# You can specify --host multiple times but port, user, password
+# etc should be the same for all the hosts in that case
+#
 # R.I.Pienaar <rip@devco.net>
 # Apache 2.0 License
 
@@ -59,7 +62,11 @@ opt.on("--critical CRIT", "-c", "Critical threshold for turn around time") do |v
 end
 
 opt.on("--host HOST", "-h", "Host to connect to") do |v|
-    options[:host] = v
+    if options[:host]
+        options[:host] << v
+    else
+        options[:host] = [v]
+    end
 end
 
 opt.on("--port PORT", "-p", "Port to connect to") do |v|
@@ -78,9 +85,21 @@ starttime = Time.now
 message = nil
 status = 3
 
+# dont spew any stuff to stderr
+class EventLogger
+    def on_miscerr(params=nil); end
+    def on_connectfail(params=nil); end
+end
+
 begin
     Timeout::timeout(options[:critical]) do
-        conn = Stomp::Connection.open(options[:user], options[:password], options[:host], options[:port], true)
+        connection = {:hosts => [], :logger => EventLogger.new}
+
+        options[:host].each do |host|
+            connection[:hosts] << {:host => host, :port => options[:port], :login => options[:user], :passcode => options[:password]}
+        end
+
+        conn = Stomp::Connection.open(connection)
 
         conn.subscribe(options[:destination])
 
