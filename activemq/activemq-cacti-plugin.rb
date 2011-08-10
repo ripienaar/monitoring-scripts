@@ -50,7 +50,7 @@ opt.on("--password PASSWORD", "Connection password") do |f|
 end
 
 opt.on("--host HOST", "Host to connect to") do |f|
-    if options[:host]
+    if @options[:host]
         @options[:host] << v
     else
         @options[:host] = [v]
@@ -120,8 +120,8 @@ begin
 
         connection = {:hosts => [], :logger => EventLogger.new}
 
-        options[:host].each do |host|
-            connection[:hosts] << {:host => host, :port => options[:port], :login => options[:user], :passcode => options[:password]}
+        @options[:host].each do |host|
+            connection[:hosts] << {:host => host, :port => @options[:port], :login => @options[:user], :passcode => @options[:password]}
         end
 
         conn = Stomp::Connection.open(connection)
