@@ -30,7 +30,7 @@ include REXML
 
 @options = {:user => "nagios",
            :password => nil,
-           :host => "localhost",
+           :host => nil,
            :port => 6163,
            :mode => :broker}
 
@@ -45,7 +45,11 @@ opt.on("--password PASSWORD", "Connection password") do |f|
 end
 
 opt.on("--host HOST", "Host to connect to") do |f|
-    @options[:host] = f
+    if options[:host]
+        @options[:host] << v
+    else
+        @options[:host] = [v]
+    end
 end
 
 opt.on("--port PORT", Integer, "Port to connect to") do |f|
@@ -62,6 +66,12 @@ opt.on("--report [broker|queue.name]", "What to report broker or queue name") do
 end
 
 opt.parse!
+
+if @options[:host].nil?
+    puts "CRITICAL: No host to monitor supplied"
+    exit 2
+end
+
 
 def amqxmldecode(amqmap)
     map = Hash.new
@@ -93,11 +103,23 @@ def amqxmldecode(amqmap)
     map
 end
 
+# dont spew any stuff to stderr
+class EventLogger
+    def on_miscerr(params=nil); end
+    def on_connectfail(params=nil); end
+end
+
 begin
     Timeout::timeout(2) do
         hostname = `hostname`.chomp
 
-        conn = Stomp::Connection.open(@options[:user], @options[:password], @options[:host], @options[:port], true)
+        connection = {:hosts => [], :logger => EventLogger.new}
+
+        options[:host].each do |host|
+            connection[:hosts] << {:host => host, :port => options[:port], :login => options[:user], :passcode => options[:password]}
+        end
+
+        conn = Stomp::Connection.open(connection)
 
         conn.subscribe("/topic/nagios.statresults.#{hostname}", { "transformation" => "jms-map-xml"})
 
