@@ -51,9 +51,9 @@ end
 
 opt.on("--host HOST", "Host to connect to") do |f|
     if @options[:host]
-        @options[:host] << v
+        @options[:host] << f
     else
-        @options[:host] = [v]
+        @options[:host] = [f]
     end
 end
 
