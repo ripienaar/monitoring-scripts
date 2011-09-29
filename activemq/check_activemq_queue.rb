@@ -12,7 +12,7 @@
 #
 # Defaults:
 #
-#   host:       localhost
+#   host:       n/a
 #   port:       6163
 #   user:       nagios
 #   queue warn: 100
@@ -34,7 +34,7 @@ include REXML
 
 @options = {:user => "nagios",
            :password => nil,
-           :host => "localhost",
+           :host => nil,
            :port => 6163,
            :queue_warn => 100,
            :queue_crit => 500,
@@ -53,7 +53,11 @@ opt.on("--password PASSWORD", "Connection password") do |f|
 end
 
 opt.on("--host HOST", "Host to connect to") do |f|
-    @options[:host] = f
+    if @options[:host]
+        @options[:host] << f
+    else
+        @options[:host] = [f]
+    end
 end
 
 opt.on("--port PORT", Integer, "Port to connect to") do |f|
@@ -120,11 +124,23 @@ output = ["ActiveMQ"]
 statuses = [0]
 perfdata = []
 
+# dont spew any stuff to stderr
+class EventLogger
+    def on_miscerr(params=nil); end
+    def on_connectfail(params=nil); end
+end
+
 begin
     Timeout::timeout(2) do
         hostname = `hostname`.chomp
 
-        conn = Stomp::Connection.open(@options[:user], @options[:password], @options[:host], @options[:port], true)
+        connection = {:hosts => [], :logger => EventLogger.new}
+
+        @options[:host].each do |host|
+            connection[:hosts] << {:host => host, :port => @options[:port], :login => @options[:user], :passcode => @options[:password]}
+        end
+
+        conn = Stomp::Connection.open(connection)
 
         conn.subscribe("/topic/nagios.statresults.#{hostname}", { "transformation" => "jms-map-xml"})
 
