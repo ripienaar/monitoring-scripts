@@ -23,6 +23,7 @@ lastrun = 0
 failcount = 0
 warn = 0
 crit = 0
+total_failure = false
 enabled_only = false
 failures = false
 
@@ -83,6 +84,7 @@ if File.exists?(summaryfile)
         # it wont have anything but last_run in it
         unless summary.include?("events")
             failcount = 99
+            total_failure = true
         else
             # and unless there are failures, the events hash just wont have the failure count
             failcount = summary["events"]["failure"] || 0
@@ -101,7 +103,10 @@ unless failures
         exit 0
     end
 
-    if time_since_last_run >= crit
+    if total_failure
+        puts "CRITICAL: FAILED - Puppet failed to run. Missing dependencies? Catalog compilation failed? Puppet last ran #{time_since_last_run} seconds ago"
+        exit 2
+    elsif time_since_last_run >= crit
         puts "CRITICAL: Puppet last ran #{time_since_last_run} seconds ago, expected < #{crit}"
         exit 2
 
@@ -124,7 +129,10 @@ else
         exit 0
     end
 
-    if failcount >= crit
+    if total_failure
+        puts "CRITICAL: FAILED - Puppet failed to run. Missing dependencies? Catalog compilation failed? Puppet last ran #{time_since_last_run} seconds ago"
+        exit 2
+    elsif failcount >= crit
         puts "CRITICAL: Puppet last ran had #{failcount} failures, expected < #{crit}"
         exit 2
 
