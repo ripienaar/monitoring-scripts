@@ -89,7 +89,7 @@ if File.exists?(summaryfile)
             total_failure = true
         else
             # and unless there are failures, the events hash just wont have the failure count
-            failcount = summary["events"]["failure"] || 0
+            failcount = 0 + summary["events"]["failure"] + summary["resources"]["failed"]
         end
     rescue
         failcount = 0
