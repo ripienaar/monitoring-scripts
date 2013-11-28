@@ -33,7 +33,7 @@ opt.on("--critical [CRIT]", "-c", Integer, "Critical threshold, time or failed r
     crit = f.to_i
 end
 
-opt.on("--warn [WARN]", "-w", Integer, "Warning thresold, time of failed resources") do |f|
+opt.on("--warn [WARN]", "-w", Integer, "Warning thresold, time or failed resources") do |f|
     warn = f.to_i
 end
 
