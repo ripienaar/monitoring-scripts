@@ -26,7 +26,7 @@ crit = 0
 total_failure = false
 enabled_only = false
 failures = false
-enable_perfdata = false
+disable_perfdata = false
 
 opt = OptionParser.new
 
@@ -58,8 +58,8 @@ opt.on("--summary-file [FILE]", "-s", "Location of the summary file, default #{s
     summaryfile = f
 end
 
-opt.on("--print-performance", "-x", "Print performance data") do |f|
-    enable_perfdata = f
+opt.on("--disable-perfdata", "-x", "Disable performance data output") do |f|
+    disable_perfdata = f
 end
 
 opt.parse!
@@ -104,15 +104,15 @@ time_since_last_run = Time.now.to_i - lastrun
 
 time_since_last_run_string = "#{time_since_last_run} seconds ago"
 if time_since_last_run >= 3600
-  time_since_last_run_string = "#{time_since_last_run / 60 / 60} hours ago at #{Time.at(Time.now + time_since_last_run).gmtime.strftime('%R:%S')}"
+  time_since_last_run_string = "#{time_since_last_run / 60 / 60} hours ago at #{Time.at(Time.now + time_since_last_run).utc.strftime('%R:%S')} UTC"
 elsif time_since_last_run >= 60
   time_since_last_run_string = "#{time_since_last_run / 60} minutes ago"
 end
 
-if enable_perfdata
-  perfdata_time = "|time_since_last_run=#{time_since_last_run}s;#{warn};#{crit};0 failed_resources=#{failcount};;;0"
-else
+if disable_perfdata
   perfdata_time = ""
+else
+  perfdata_time = "|time_since_last_run=#{time_since_last_run}s;#{warn};#{crit};0 failed_resources=#{failcount};;;0"
 end
 
 unless failures
