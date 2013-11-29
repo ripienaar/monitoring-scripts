@@ -97,7 +97,7 @@ class NodeChecker
   end
 
   def nodes
-    @nodes ||= @puppetdb.nodes.sort_by{|n| Time.parse(n["catalog_timestamp"])}.reverse
+    @nodes ||= @puppetdb.active_nodes.sort_by{|n| Time.parse(n["catalog_timestamp"])}.reverse
   end
 
   def older_than(seconds)
@@ -134,31 +134,31 @@ class NodeCountChecker < NodeChecker
     @puppetdb.reset!
 
     if @config[:critical] >= @config[:warning]
-      if active_nodes.size >= @config[:critical]
+      if nodes.size >= @config[:critical]
         {:status => NAGIOS_CRIT,
-         :message => "CRITICAL: %d nodes in population but expected < %d" % [active_nodes.size, @config[:critical]],
+         :message => "CRITICAL: %d nodes in population but expected < %d" % [nodes.size, @config[:critical]],
          :stats => stats}
-      elsif active_nodes.size > @config[:warning]
+      elsif nodes.size > @config[:warning]
         {:status => NAGIOS_WARN,
-         :message => "WARNING: %d nodes in population but expected < %d" % [active_nodes.size, @config[:warning]],
+         :message => "WARNING: %d nodes in population but expected < %d" % [nodes.size, @config[:warning]],
          :stats => stats}
       else
         {:status => NAGIOS_OK,
-         :message => "OK: %d nodes in population" % active_nodes.size,
+         :message => "OK: %d nodes in population" % nodes.size,
          :stats => stats}
       end
     else
-      if active_nodes.size <= @config[:critical]
+      if nodes.size <= @config[:critical]
         {:status => NAGIOS_CRIT,
-         :message => "CRITICAL: %d nodes in population but expected > %d" % [active_nodes.size, @config[:critical]],
+         :message => "CRITICAL: %d nodes in population but expected > %d" % [nodes.size, @config[:critical]],
          :stats => stats}
-      elsif active_nodes.size < @config[:warning]
+      elsif nodes.size < @config[:warning]
         {:status => NAGIOS_WARN,
-         :message => "WARNING: %d nodes in population but expected > %d" % [active_nodes.size, @config[:warning]],
+         :message => "WARNING: %d nodes in population but expected > %d" % [nodes.size, @config[:warning]],
          :stats => stats}
       else
         {:status => NAGIOS_OK,
-         :message => "OK: %d nodes in population" % active_nodes.size,
+         :message => "OK: %d nodes in population" % nodes.size,
          :stats => stats}
       end
     end
