@@ -26,6 +26,7 @@ crit = 0
 total_failure = false
 enabled_only = false
 failures = false
+enable_perfdata = false
 
 opt = OptionParser.new
 
@@ -33,7 +34,7 @@ opt.on("--critical [CRIT]", "-c", Integer, "Critical threshold, time or failed r
     crit = f.to_i
 end
 
-opt.on("--warn [WARN]", "-w", Integer, "Warning thresold, time of failed resources") do |f|
+opt.on("--warn [WARN]", "-w", Integer, "Warning threshold, time or failed resources") do |f|
     warn = f.to_i
 end
 
@@ -55,6 +56,10 @@ end
 
 opt.on("--summary-file [FILE]", "-s", "Location of the summary file, default #{summaryfile}") do |f|
     summaryfile = f
+end
+
+opt.on("--print-performance", "-x", "Print performance data") do |f|
+    enable_perfdata = f
 end
 
 opt.parse!
@@ -97,54 +102,67 @@ end
 
 time_since_last_run = Time.now.to_i - lastrun
 
+time_since_last_run_string = "#{time_since_last_run} seconds ago"
+if time_since_last_run >= 3600
+  time_since_last_run_string = "#{time_since_last_run / 60 / 60} hours ago at #{Time.at(Time.now + time_since_last_run).gmtime.strftime('%R:%S')}"
+elsif time_since_last_run >= 60
+  time_since_last_run_string = "#{time_since_last_run / 60} minutes ago"
+end
+
+if enable_perfdata
+  perfdata_time = "|time_since_last_run=#{time_since_last_run}s;#{warn};#{crit};0 failed_resources=#{failcount};;;0"
+else
+  perfdata_time = ""
+end
+
 unless failures
     if enabled_only && enabled == false
-        puts "OK: Puppet is currently disabled, not alerting.  Last run #{time_since_last_run} seconds ago with #{failcount} failures"
+        puts "OK: Puppet is currently disabled, not alerting.  Last run #{time_since_last_run_string} with #{failcount} failures#{perfdata_time}"
         exit 0
     end
 
     if total_failure
-        puts "CRITICAL: FAILED - Puppet failed to run. Missing dependencies? Catalog compilation failed? Puppet last ran #{time_since_last_run} seconds ago"
+        puts "CRITICAL: FAILED - Puppet failed to run. Missing dependencies? Catalog compilation failed? Last run #{time_since_last_run_string}#{perfdata_time}"
         exit 2
     elsif time_since_last_run >= crit
-        puts "CRITICAL: Puppet last ran #{time_since_last_run} seconds ago, expected < #{crit}"
+        puts "CRITICAL: last run #{time_since_last_run_string}, expected < #{crit}s#{perfdata_time}"
         exit 2
 
     elsif time_since_last_run >= warn
-        puts "WARNING: Puppet last ran #{time_since_last_run} seconds ago, expected < #{warn}"
+        puts "WARNING: last run #{time_since_last_run_string}, expected < #{warn}s#{perfdata_time}"
         exit 1
 
     else
         if enabled
-            puts "OK: Puppet is currently enabled, last run #{time_since_last_run} seconds ago with #{failcount} failures"
+            puts "OK: last run #{time_since_last_run_string} with #{failcount} failures and currently enabled#{perfdata_time}"
         else
-            puts "OK: Puppet is currently disabled, last run #{time_since_last_run} seconds ago with #{failcount} failures"
+            puts "OK: last run #{time_since_last_run_string} with #{failcount} failures and currently disabled#{perfdata_time}"
         end
 
         exit 0
     end
 else
     if enabled_only && enabled == false
-        puts "OK: Puppet is currently disabled, not alerting.  Last run #{time_since_last_run} seconds ago with #{failcount} failures"
+        puts "OK: Puppet is currently disabled, not alerting.  Last run #{time_since_last_run_string} with #{failcount} failures#{perfdata_time}"
         exit 0
     end
 
     if total_failure
-        puts "CRITICAL: FAILED - Puppet failed to run. Missing dependencies? Catalog compilation failed? Puppet last ran #{time_since_last_run} seconds ago"
+        puts "CRITICAL: FAILED - Puppet failed to run. Missing dependencies? Catalog compilation failed? Last run #{time_since_last_run_string}#{perfdata_time}"
         exit 2
     elsif failcount >= crit
-        puts "CRITICAL: Puppet last ran had #{failcount} failures, expected < #{crit}"
+        puts "CRITICAL: Puppet last ran had #{failcount} failures, expected < #{crit}#{perfdata_time}"
         exit 2
 
     elsif failcount >= warn
-        puts "WARNING: Puppet last ran had #{failcount} failures, expected < #{warn}"
+        puts "WARNING: Puppet last ran had #{failcount} failures, expected < #{warn}#{perfdata_time}"
         exit 1
 
     else
         if enabled
-            puts "OK: Puppet is currently enabled, last run #{time_since_last_run} seconds ago with #{failcount} failures"
+            puts "OK: last run #{time_since_last_run_string} with #{failcount} failures and currently enabled#{perfdata_time}"
         else
-            puts "OK: Puppet is currently disabled, last run #{time_since_last_run} seconds ago with #{failcount} failures"
+            puts "OK: last run #{time_since_last_run_string} with #{failcount} failures and currently disabled#{perfdata_time}"
         end
 
         exit 0
