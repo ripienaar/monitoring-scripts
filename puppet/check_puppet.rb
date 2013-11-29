@@ -20,7 +20,8 @@ enabled = true
 running = false
 lastrun_failed = false
 lastrun = 0
-failcount = 0
+failcount_resources = 0
+failcount_events = 0
 warn = 0
 crit = 0
 total_failure = false
@@ -88,14 +89,17 @@ if File.exists?(summaryfile)
         # are treated as huge failures.  The yaml file will be valid but
         # it wont have anything but last_run in it
         unless summary.include?("events")
-            failcount = 99
+            failcount_resources = 99
+            failcount_events = 99
             total_failure = true
         else
             # and unless there are failures, the events hash just wont have the failure count
-            failcount = summary["events"]["failure"] || 0
+            failcount_resources = summary["resources"]["failed"] || 0
+            failcount_events = summary["events"]["failure"] || 0
         end
     rescue
-        failcount = 0
+        failcount_resources = 0
+        failcount_events = 0
         summary = nil
     end
 end
@@ -112,12 +116,12 @@ end
 if disable_perfdata
   perfdata_time = ""
 else
-  perfdata_time = "|time_since_last_run=#{time_since_last_run}s;#{warn};#{crit};0 failed_resources=#{failcount};;;0"
+  perfdata_time = "|time_since_last_run=#{time_since_last_run}s;#{warn};#{crit};0 failed_resources=#{failcount_resources};;;0 failed_events=#{failcount_events};;;0"
 end
 
 unless failures
     if enabled_only && enabled == false
-        puts "OK: Puppet is currently disabled, not alerting.  Last run #{time_since_last_run_string} with #{failcount} failures#{perfdata_time}"
+        puts "OK: Puppet is currently disabled, not alerting. Last run #{time_since_last_run_string} with #{failcount_resources} failed resources #{failcount_events} failed events#{perfdata_time}"
         exit 0
     end
 
@@ -134,35 +138,35 @@ unless failures
 
     else
         if enabled
-            puts "OK: last run #{time_since_last_run_string} with #{failcount} failures and currently enabled#{perfdata_time}"
+            puts "OK: last run #{time_since_last_run_string} with #{failcount_resources} failed resources #{failcount_events} failed events and currently enabled#{perfdata_time}"
         else
-            puts "OK: last run #{time_since_last_run_string} with #{failcount} failures and currently disabled#{perfdata_time}"
+            puts "OK: last run #{time_since_last_run_string} with #{failcount_resources} failed resources #{failcount_events} failed events and currently disabled#{perfdata_time}"
         end
 
         exit 0
     end
 else
     if enabled_only && enabled == false
-        puts "OK: Puppet is currently disabled, not alerting.  Last run #{time_since_last_run_string} with #{failcount} failures#{perfdata_time}"
+        puts "OK: Puppet is currently disabled, not alerting. Last run #{time_since_last_run_string} with #{failcount_resources} failed resources #{failcount_events} failed events#{perfdata_time}"
         exit 0
     end
 
     if total_failure
         puts "CRITICAL: FAILED - Puppet failed to run. Missing dependencies? Catalog compilation failed? Last run #{time_since_last_run_string}#{perfdata_time}"
         exit 2
-    elsif failcount >= crit
-        puts "CRITICAL: Puppet last ran had #{failcount} failures, expected < #{crit}#{perfdata_time}"
+    elsif failcount_resources >= crit
+        puts "CRITICAL: Puppet last ran had #{failcount_resources} failed resources #{failcount_events} failed events, expected < #{crit}#{perfdata_time}"
         exit 2
 
-    elsif failcount >= warn
-        puts "WARNING: Puppet last ran had #{failcount} failures, expected < #{warn}#{perfdata_time}"
+    elsif failcount_resources >= warn
+        puts "WARNING: Puppet last ran had #{failcount_resources} failed resources #{failcount_events} failed events, expected < #{warn}#{perfdata_time}"
         exit 1
 
     else
         if enabled
-            puts "OK: last run #{time_since_last_run_string} with #{failcount} failures and currently enabled#{perfdata_time}"
+            puts "OK: last run #{time_since_last_run_string} with #{failcount_resources} failed resources #{failcount_events} failed events and currently enabled#{perfdata_time}"
         else
-            puts "OK: last run #{time_since_last_run_string} with #{failcount} failures and currently disabled#{perfdata_time}"
+            puts "OK: last run #{time_since_last_run_string} with #{failcount_resources} failed resources #{failcount_events} failed events and currently disabled#{perfdata_time}"
         end
 
         exit 0
