@@ -108,7 +108,7 @@ time_since_last_run = Time.now.to_i - lastrun
 
 time_since_last_run_string = "#{time_since_last_run} seconds ago"
 if time_since_last_run >= 3600
-  time_since_last_run_string = "#{time_since_last_run / 60 / 60} hours ago at #{Time.at(Time.now + time_since_last_run).utc.strftime('%R:%S')} UTC"
+  time_since_last_run_string = "#{time_since_last_run / 60 / 60} hours ago at #{Time.at(Time.now - time_since_last_run).utc.strftime('%R:%S')} UTC"
 elsif time_since_last_run >= 60
   time_since_last_run_string = "#{time_since_last_run / 60} minutes ago"
 end
