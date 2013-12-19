@@ -6,10 +6,14 @@
 # It can also check fail counts and skip machines
 # that are not enabled
 #
-# The script will use the puppet last_run-summar.yaml
+# The script will use the puppet last_run_summary.yaml
 # file to determine when last Puppet ran else the age
 # of the statefile.
-
+#
+# 19/12/2013 --- Change to lock files and handling of a puppet agent in a disabled state (WARNING)
+#            *** These changes are made to work with puppet 3.X and MAY cause some issues with 2.x users
+#            *** The script should still continue to work for 2.x, but may not handle the lockfiles correctly
+#            *** and will require the proper arguments to match 2.x filename.
 require 'optparse'
 require 'yaml'
 
