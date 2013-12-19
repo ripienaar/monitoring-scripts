@@ -13,7 +13,8 @@
 require 'optparse'
 require 'yaml'
 
-lockfile = "/var/lib/puppet/state/puppetdlock"
+agent_lockfile = "/var/lib/puppet/state/agent_catalog_run.lock"
+agent_disabled_lockfile = "/var/lib/puppet/state/agent_disabled.lock"
 statefile = "/var/lib/puppet/state/state.yaml"
 summaryfile = "/var/lib/puppet/state/last_run_summary.yaml"
 enabled = true
@@ -47,8 +48,12 @@ opt.on("--only-enabled", "-e", "Only alert if Puppet is enabled") do |f|
     enabled_only = true
 end
 
-opt.on("--lock-file [FILE]", "-l", "Location of the lock file, default #{lockfile}") do |f|
-    lockfile = f
+opt.on("--agent-lock-file [FILE]", "-l", "Location of the agent run lock file, default #{agent_lockfile}") do |f|
+    agent_lockfile = f
+end
+
+opt.on("--agent-disabled-lock-file [FILE]", "-d", "Location of the agent disabled lock file, default #{agent_disabled_lockfile}") do |f|
+    agent_disabled_lockfile = f
 end
 
 opt.on("--state-file [FILE]", "-t", "Location of the state file, default #{statefile}") do |f|
@@ -70,13 +75,18 @@ if warn == 0 || crit == 0
     exit 3
 end
 
-if File.exists?(lockfile)
-    if File::Stat.new(lockfile).zero?
+if File.exists?(agent_lockfile)
+    if File::Stat.new(agent_lockfile).zero?
        enabled = false
     else
        running = true
     end
 end
+
+if File.exists?(agent_disabled_lockfile)
+    enabled = false
+end
+
 
 lastrun = File.stat(statefile).mtime.to_i if File.exists?(statefile)
 
@@ -140,8 +150,9 @@ unless failures
         if enabled
             puts "OK: last run #{time_since_last_run_string} with #{failcount_resources} failed resources #{failcount_events} failed events and currently enabled#{perfdata_time}"
         else
-            puts "OK: last run #{time_since_last_run_string} with #{failcount_resources} failed resources #{failcount_events} failed events and currently disabled#{perfdata_time}"
-        end
+            puts "WARNING: last run #{time_since_last_run_string} with #{failcount_resources} failed resources #{failcount_events} failed events and currently disabled#{perfdata_time}"
+            exit 1
+         end
 
         exit 0
     end
@@ -166,7 +177,8 @@ else
         if enabled
             puts "OK: last run #{time_since_last_run_string} with #{failcount_resources} failed resources #{failcount_events} failed events and currently enabled#{perfdata_time}"
         else
-            puts "OK: last run #{time_since_last_run_string} with #{failcount_resources} failed resources #{failcount_events} failed events and currently disabled#{perfdata_time}"
+            puts "WARNING: last run #{time_since_last_run_string} with #{failcount_resources} failed resources #{failcount_events} failed events and currently disabled#{perfdata_time}"
+            exit 1
         end
 
         exit 0
