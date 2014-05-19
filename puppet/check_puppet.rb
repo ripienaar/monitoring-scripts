@@ -94,7 +94,10 @@ end
 
 lastrun = File.stat(statefile).mtime.to_i if File.exists?(statefile)
 
-if File.exists?(summaryfile)
+unless File.readable?(summaryfile)
+    puts "UNKNOWN: Summary file not found or not readable. Check #{statefile}"
+    exit 3
+else
     begin
         summary = YAML.load_file(summaryfile)
         lastrun = summary["time"]["last_run"]
