@@ -17,10 +17,11 @@
 require 'optparse'
 require 'yaml'
 
-agent_lockfile = "/var/lib/puppet/state/agent_catalog_run.lock"
-agent_disabled_lockfile = "/var/lib/puppet/state/agent_disabled.lock"
-statefile = "/var/lib/puppet/state/state.yaml"
-summaryfile = "/var/lib/puppet/state/last_run_summary.yaml"
+statedir = "/var/lib/puppet/state"
+agent_lockfile = statedir + "/agent_catalog_run.lock"
+agent_disabled_lockfile = statedir + "/agent_disabled.lock"
+statefile = statedir + "/state.yaml"
+summaryfile = statedir + "/last_run_summary.yaml"
 enabled = true
 running = false
 lastrun_failed = false
@@ -50,6 +51,14 @@ end
 
 opt.on("--only-enabled", "-e", "Only alert if Puppet is enabled") do |f|
     enabled_only = true
+end
+
+opt.on("--state-dir [FILE]", "Location of the state directory containing lock and state files, default #{statedir}, will change location of the files") do |f|
+    statedir = f
+    agent_lockfile = statedir + "/agent_catalog_run.lock"
+    agent_disabled_lockfile = statedir + "/agent_disabled.lock"
+    statefile = statedir + "/state.yaml"
+    summaryfile = statedir + "/last_run_summary.yaml"
 end
 
 opt.on("--agent-lock-file [FILE]", "-l", "Location of the agent run lock file, default #{agent_lockfile}") do |f|
@@ -95,7 +104,7 @@ end
 lastrun = File.stat(statefile).mtime.to_i if File.exists?(statefile)
 
 unless File.readable?(summaryfile)
-    puts "UNKNOWN: Summary file not found or not readable. Check #{statefile}"
+    puts "UNKNOWN: Summary file not found or not readable. Check #{summaryfile}"
     exit 3
 else
     begin
