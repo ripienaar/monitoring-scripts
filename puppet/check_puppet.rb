@@ -34,6 +34,7 @@ total_failure = false
 enabled_only = false
 failures = false
 disable_perfdata = false
+lockfile_contents = nil
 
 opt = OptionParser.new
 
@@ -92,7 +93,12 @@ if File.exists?(agent_lockfile)
     if File::Stat.new(agent_lockfile).zero?
        enabled = false
     else
-       running = true
+       lockfile_contents = File.read(lockfile).chomp
+       if lockfile_contents =~ /^\d+$/
+         running = true
+       else
+         enabled = false
+       end
     end
 end
 
@@ -165,6 +171,8 @@ unless failures
     else
         if enabled
             puts "OK: last run #{time_since_last_run_string} with #{failcount_resources} failed resources #{failcount_events} failed events and currently enabled#{perfdata_time}"
+        elsif lockfile_contents
+            puts "OK: last run #{time_since_last_run_string} with #{failcount_resources} failed resources #{failcount_events} failed events and currently disabled (#{lockfile_contents})#{perfdata_time}"
         else
             puts "WARNING: last run #{time_since_last_run_string} with #{failcount_resources} failed resources #{failcount_events} failed events and currently disabled#{perfdata_time}"
             exit 1
@@ -192,6 +200,8 @@ else
     else
         if enabled
             puts "OK: last run #{time_since_last_run_string} with #{failcount_resources} failed resources #{failcount_events} failed events and currently enabled#{perfdata_time}"
+        elsif lockfile_contents
+            puts "OK: last run #{time_since_last_run_string} with #{failcount_resources} failed resources #{failcount_events} failed events and currently disabled (#{lockfile_contents})#{perfdata_time}"
         else
             puts "WARNING: last run #{time_since_last_run_string} with #{failcount_resources} failed resources #{failcount_events} failed events and currently disabled#{perfdata_time}"
             exit 1
