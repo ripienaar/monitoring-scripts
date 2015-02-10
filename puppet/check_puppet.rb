@@ -151,7 +151,7 @@ end
 
 unless failures
     if enabled_only && enabled == false
-        puts "OK: Puppet is currently disabled, not alerting. Last run #{time_since_last_run_string} with #{failcount_resources} failed resources #{failcount_events} failed events. Disabled with reason: ${disabled_message}#{perfdata_time}"
+        puts "OK: Puppet is currently disabled, not alerting. Last run #{time_since_last_run_string} with #{failcount_resources} failed resources #{failcount_events} failed events. Disabled with reason: #{disabled_message}#{perfdata_time}"
         exit 0
     end
 
@@ -178,7 +178,7 @@ unless failures
     end
 else
     if enabled_only && enabled == false
-        puts "OK: Puppet is currently disabled, not alerting. Last run #{time_since_last_run_string} with #{failcount_resources} failed resources #{failcount_events} failed events. Disabled with reason: ${disabled_message}#{perfdata_time}"
+        puts "OK: Puppet is currently disabled, not alerting. Last run #{time_since_last_run_string} with #{failcount_resources} failed resources #{failcount_events} failed events. Disabled with reason: #{disabled_message}#{perfdata_time}"
         exit 0
     end
 
