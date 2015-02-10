@@ -16,6 +16,8 @@
 #            *** and will require the proper arguments to match 2.x filename.
 require 'optparse'
 require 'yaml'
+require 'rubygems'
+require 'json'
 
 statedir = "/var/lib/puppet/state"
 agent_lockfile = statedir + "/agent_catalog_run.lock"
@@ -34,6 +36,7 @@ total_failure = false
 enabled_only = false
 failures = false
 disable_perfdata = false
+disabled_message = "reason not specified"
 
 opt = OptionParser.new
 
@@ -98,6 +101,7 @@ end
 
 if File.exists?(agent_disabled_lockfile)
     enabled = false
+    disabled_message = JSON.parse(File.read(agent_disabled_lockfile))['disabled_message'] || "reason not specified"
 end
 
 
@@ -147,7 +151,7 @@ end
 
 unless failures
     if enabled_only && enabled == false
-        puts "OK: Puppet is currently disabled, not alerting. Last run #{time_since_last_run_string} with #{failcount_resources} failed resources #{failcount_events} failed events#{perfdata_time}"
+        puts "OK: Puppet is currently disabled, not alerting. Last run #{time_since_last_run_string} with #{failcount_resources} failed resources #{failcount_events} failed events. Disabled with reason: ${disabled_message}#{perfdata_time}"
         exit 0
     end
 
@@ -166,7 +170,7 @@ unless failures
         if enabled
             puts "OK: last run #{time_since_last_run_string} with #{failcount_resources} failed resources #{failcount_events} failed events and currently enabled#{perfdata_time}"
         else
-            puts "WARNING: last run #{time_since_last_run_string} with #{failcount_resources} failed resources #{failcount_events} failed events and currently disabled#{perfdata_time}"
+            puts "WARNING: last run #{time_since_last_run_string} with #{failcount_resources} failed resources #{failcount_events} failed events and currently disabled with reason: #{disabled_message}#{perfdata_time}"
             exit 1
          end
 
@@ -174,7 +178,7 @@ unless failures
     end
 else
     if enabled_only && enabled == false
-        puts "OK: Puppet is currently disabled, not alerting. Last run #{time_since_last_run_string} with #{failcount_resources} failed resources #{failcount_events} failed events#{perfdata_time}"
+        puts "OK: Puppet is currently disabled, not alerting. Last run #{time_since_last_run_string} with #{failcount_resources} failed resources #{failcount_events} failed events. Disabled with reason: ${disabled_message}#{perfdata_time}"
         exit 0
     end
 
@@ -193,7 +197,7 @@ else
         if enabled
             puts "OK: last run #{time_since_last_run_string} with #{failcount_resources} failed resources #{failcount_events} failed events and currently enabled#{perfdata_time}"
         else
-            puts "WARNING: last run #{time_since_last_run_string} with #{failcount_resources} failed resources #{failcount_events} failed events and currently disabled#{perfdata_time}"
+            puts "WARNING: last run #{time_since_last_run_string} with #{failcount_resources} failed resources #{failcount_events} failed events and currently disabled with reason: #{disabled_message}#{perfdata_time}"
             exit 1
         end
 
