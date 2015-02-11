@@ -99,7 +99,7 @@ end
 
 if File.exists?(agent_disabled_lockfile)
     enabled = false
-    disabled_message = File.open('/var/lib/puppet/state/agent_disabled.lock', 'r').read.gsub(/.*\"(.*)\"\}/, '\1') || "reason not specified"
+    disabled_message = File.open(agent_disabled_lockfile, 'r').read.gsub(/.*\"(.*)\"\}/, '\1') || "reason not specified"
 end
 
 
