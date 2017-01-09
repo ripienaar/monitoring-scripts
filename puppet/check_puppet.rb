@@ -17,7 +17,9 @@
 require 'optparse'
 require 'yaml'
 
-statedir = "/var/lib/puppet/state"
+statedir_puppet_3 = "/var/lib/puppet/state"
+statedir_puppet_4 = "/opt/puppetlabs/puppet/cache/state"
+File.directory?(statedir_puppet_4) ? statedir = statedir_puppet_4 : statedir = statedir_puppet_3
 agent_lockfile = statedir + "/agent_catalog_run.lock"
 agent_disabled_lockfile = statedir + "/agent_disabled.lock"
 statefile = statedir + "/state.yaml"
