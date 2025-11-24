@@ -93,7 +93,7 @@ if warn == 0 || crit == 0
     exit 3
 end
 
-if File.exists?(agent_lockfile)
+if File.exist?(agent_lockfile)
     if File::Stat.new(agent_lockfile).zero?
        enabled = false
     else
@@ -101,13 +101,13 @@ if File.exists?(agent_lockfile)
     end
 end
 
-if File.exists?(agent_disabled_lockfile)
+if File.exist?(agent_disabled_lockfile)
     enabled = false
     disabled_message = File.open(agent_disabled_lockfile, 'r').read.gsub(/.*\"(.*)\"\}/, '\1') || "reason not specified"
 end
 
 
-lastrun = File.stat(statefile).mtime.to_i if File.exists?(statefile)
+lastrun = File.stat(statefile).mtime.to_i if File.exist?(statefile)
 
 unless File.readable?(summaryfile)
     puts "UNKNOWN: Summary file not found or not readable. Check #{summaryfile}"
